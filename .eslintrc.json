@@ -7,6 +7,7 @@
 	"plugins": [
 		"prettier"
 	],
+  "no-param-reassign": ["error", { "props": false }],
   "parser": "babel-eslint",
 	"parserOptions": {
 		"ecmaVersion": 2016,
