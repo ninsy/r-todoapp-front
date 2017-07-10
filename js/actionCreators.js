@@ -7,7 +7,7 @@ export function setSearchTerm(term) {
 }
 
 export function toggleNewTodoPrompt(todoId) {
-  return { type: Actions.TOGGLE_ADD, payload: todoId };
+  return { type: Actions.TOGGLE_TODO_PROMPT, payload: todoId };
 }
 
 export function addTodo(todo) {
@@ -18,9 +18,9 @@ export function deleteTodo(todo) {
   return { type: Actions.DELETE_TODO, payload: todo };
 }
 
-export function editTodo(todo) {
-  return { type: Actions.EDIT_TODO, payload: todo };
-}
+// export function editTodo(todo) {
+//   return { type: Actions.EDIT_TODO, payload: todo };
+// }
 
 export function onTodoStateToggled(todo) {
   return { type: Actions.TOGGLE_TODO_STATE, payload: todo };
@@ -28,6 +28,10 @@ export function onTodoStateToggled(todo) {
 
 export function toggleTodoView(todo) {
   return { type: Actions.TOGGLE_TODO_VIEW, payload: todo };
+}
+
+export function deserializeTodos(root) {
+  return { type: Actions.DESERIALIZE_TODOS, payload: root };
 }
 
 export function toggleTodoState(todo) {
@@ -50,8 +54,7 @@ function createRootTodo() {
     axios
       .post(`${API_PATH}/todos`)
       .then(res => {
-        localStorage[res.data.id] = res.data;
-        dispatch(addTodo(res.data));
+        dispatch(deserializeTodos(res.data));
       })
       .catch(err => {
         console.error(err);
@@ -64,7 +67,33 @@ function getTodoTree(localStorageTodoId) {
     axios
       .get(`${API_PATH}/todos/${localStorageTodoId}`)
       .then(res => {
-        dispatch(addTodo(res.data));
+        dispatch(deserializeTodos(res.data));
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  };
+}
+
+export function editTodo(todo) {
+  return function(dispatch) {
+    axios
+      .put(`${API_PATH}/todos/${todo.id}`, todo)
+      .then(res => {
+        dispatch(deserializeTodos(res.data));
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  };
+}
+
+export function createTodo(todo) {
+  return function(dispatch) {
+    axios
+      .post(`${API_PATH}/todos`, todo)
+      .get(res => {
+        dispatch(deserializeTodos(res.data));
       })
       .catch(err => {
         console.error(err);
