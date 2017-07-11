@@ -1,7 +1,8 @@
 import React from "react";
 import { Route, Switch } from "react-router-dom";
+import { array, object, func } from 'prop-types';
 import { connect, Provider } from "react-redux";
-import { tryGettingRoot } from "actionCreators";
+import { tryGettingRoot } from "./actionCreators";
 import store from "./store";
 import Todo from "./Todo";
 
@@ -9,22 +10,13 @@ const on404 = () => <h1>404</h1>;
 
 class App extends React.Component {
   componentDidMount() {
-    if (!this.props.todosRoot) {
+    if (!this.props.root) {
+      this.props.tryRoot();
     }
   }
-  getExactTodo = (todoTargetId, currentTodoPtr) => {
-    if (todoTargetId === currentTodoPtr.id) {
-      return currentTodoPtr;
-    } else {
-      for (let i = 0; i < currentTodoPtr.todos.length; i += 1) {
-        const match = this.getExactTodo(todoTargetId, currentTodoPtr.todos[i]);
-        if (match) return match;
-      }
-    }
-  };
   renderExactTodo = props => (
     <Todo
-      todo={this.getExactTodo(props.match.params.id, this.props.todosRoot)}
+      todo={this.props.todo[props.match.id]}
       {...props}
     />
   );
@@ -36,7 +28,7 @@ class App extends React.Component {
             <Route
               exact
               path="/"
-              component={() => <Todo todo={this.props.todosRoot} />}
+              component={() => <Todo todo={this.props.root} />}
             />
             <Route
               path="/:id"
@@ -50,9 +42,18 @@ class App extends React.Component {
   }
 }
 
-const mapStateToProps = (state, ownProps) => {};
+App.propTypes = {
+  root: object.isRequired,
+  todo: array.isRequired,
+  tryRoot: func.isRequired
+}
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapStateToProps = (state) => ({
+  root: state.root,
+  todo: state.todo
+});
+
+const mapDispatchToProps = (dispatch) => ({
   tryRoot() {
     dispatch(tryGettingRoot());
   }

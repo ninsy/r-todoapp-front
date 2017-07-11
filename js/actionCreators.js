@@ -14,24 +14,12 @@ export function addTodo(todo) {
   return { type: Actions.ADD_TODO, payload: todo };
 }
 
-export function deleteTodo(todo) {
-  return { type: Actions.DELETE_TODO, payload: todo };
+export function editTodo(todo) {
+  return { type: Actions.EDIT_TODO, payload: todo };
 }
 
-// export function editTodo(todo) {
-//   return { type: Actions.EDIT_TODO, payload: todo };
-// }
-
-export function onTodoStateToggled(todo) {
-  return { type: Actions.TOGGLE_TODO_STATE, payload: todo };
-}
-
-export function toggleTodoView(todo) {
-  return { type: Actions.TOGGLE_TODO_VIEW, payload: todo };
-}
-
-export function deserializeTodos(root) {
-  return { type: Actions.DESERIALIZE_TODOS, payload: root };
+export function deleteTodo({todo, erasedTodo}) {
+  return { type: Actions.DELETE_TODO, payload: { todoToRemove: [todo.id, ...erasedTodo]} };
 }
 
 export function toggleTodoState(todo) {
@@ -41,7 +29,7 @@ export function toggleTodoState(todo) {
     axios
       .put(`${API_PATH}/todos/${todoCopy.id}`, todoCopy)
       .then(res => {
-        dispatch(onTodoStateToggled(res.data));
+        dispatch(editTodo(res.data));
       })
       .catch(err => {
         console.error(err);
@@ -54,7 +42,7 @@ function createRootTodo() {
     axios
       .post(`${API_PATH}/todos`)
       .then(res => {
-        dispatch(deserializeTodos(res.data));
+        dispatch(addTodo(res.data));
       })
       .catch(err => {
         console.error(err);
@@ -67,7 +55,7 @@ function getTodoTree(localStorageTodoId) {
     axios
       .get(`${API_PATH}/todos/${localStorageTodoId}`)
       .then(res => {
-        dispatch(deserializeTodos(res.data));
+        dispatch(addTodo(res.data));
       })
       .catch(err => {
         console.error(err);
@@ -75,12 +63,25 @@ function getTodoTree(localStorageTodoId) {
   };
 }
 
-export function editTodo(todo) {
+export function deleteTodoRequest(todo) {
+  return function(dispatch) {
+    axios
+      .delete(`${API_PATH}/todos/${todo.id}`)
+      .then(res => {
+        dispatch(deleteTodo(res.data))
+      })
+      .catch(err => {
+        console.error(err);
+      })
+  }
+}
+
+export function editTodoRequest(todo) {
   return function(dispatch) {
     axios
       .put(`${API_PATH}/todos/${todo.id}`, todo)
       .then(res => {
-        dispatch(deserializeTodos(res.data));
+        dispatch(editTodo(res.data));
       })
       .catch(err => {
         console.error(err);
@@ -88,12 +89,12 @@ export function editTodo(todo) {
   };
 }
 
-export function createTodo(todo) {
+export function createTodoRequest(todo) {
   return function(dispatch) {
     axios
       .post(`${API_PATH}/todos`, todo)
       .get(res => {
-        dispatch(deserializeTodos(res.data));
+        dispatch(addTodo(res.data));
       })
       .catch(err => {
         console.error(err);
