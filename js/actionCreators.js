@@ -22,6 +22,10 @@ export function deleteTodo({todo, erasedTodo}) {
   return { type: Actions.DELETE_TODO, payload: { todoToRemove: [todo.id, ...erasedTodo]} };
 }
 
+export function getTodo(todo) {
+  return { type: Actions.GET_TODO, payload: todo};
+}
+
 export function toggleTodoState(todo) {
   return function(dispatch) {
     const todoCopy = Object.assign({}, todo);
@@ -40,8 +44,9 @@ export function toggleTodoState(todo) {
 function createRootTodo() {
   return function(dispatch) {
     axios
-      .post(`${API_PATH}/todos`)
+      .post(`${API_PATH}/todos`, {content: `New TodoList, timestamp: ${new Date()*1}`})
       .then(res => {
+        localStorage[LOCAL_STORAGE_KEY] = JSON.stringify(res.data);
         dispatch(addTodo(res.data));
       })
       .catch(err => {
@@ -50,12 +55,12 @@ function createRootTodo() {
   };
 }
 
-function getTodoTree(localStorageTodoId) {
+export function getTodoTree(localStorageTodoId) {
   return function(dispatch) {
     axios
       .get(`${API_PATH}/todos/${localStorageTodoId}`)
       .then(res => {
-        dispatch(addTodo(res.data));
+        dispatch(getTodo(res.data));
       })
       .catch(err => {
         console.error(err);
@@ -108,7 +113,7 @@ export function tryGettingRoot() {
       typeof localStorage === "object" &&
       localStorage.hasOwnProperty(LOCAL_STORAGE_KEY)
     ) {
-      dispatch(getTodoTree(localStorage[LOCAL_STORAGE_KEY]));
+      dispatch(getTodoTree(JSON.parse(localStorage[LOCAL_STORAGE_KEY]).id));
     } else {
       dispatch(createRootTodo());
     }

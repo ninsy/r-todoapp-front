@@ -12,16 +12,26 @@ const searchTerm = (state = "", action) => {
 const todos = (state = {}, action) => {
   switch (action.type) {
     case Actions.ADD_TODO: {
+        const stateCopy = Object.assign({}, state);
+      if(!stateCopy.root) {
+        stateCopy.root = action.payload.root;
+        stateCopy.todo = {};
+      } else {
+        stateCopy.todo[action.payload.id] = action.payload.todo;
+      }
+      return stateCopy;
+    }
+    case Actions.GET_TODO: {
       const stateCopy = Object.assign({}, state);
       if(!stateCopy.root) {
-        stateCopy.root = action.payload;
-        stateCopy.todo = [];
-      } else {
-        stateCopy.todo[action.payload.id] = action.payload;
+        stateCopy.root = action.payload.root;
       }
-      return Object.assign({}, state, { [action.payload.id]: action.payload });
+      if(!stateCopy.todo) {
+        stateCopy.todo = {};
+      }
+      stateCopy.todo = Object.assign(stateCopy.todo, action.payload.todo);
+      return stateCopy;
     }
-    case Actions.TOGGLE_TODO_VIEW:
     case Actions.TOGGLE_TODO_STATE:
     case Actions.EDIT_TODO: {
       const stateCopy = Object.assign({}, state);
@@ -47,7 +57,13 @@ const todos = (state = {}, action) => {
       stateCopy.todo[action.payload.id].newPromptVisible = !stateCopy.todo[
         action.payload.id
       ].newPromptVisible;
-
+      return stateCopy;
+    }
+    case Actions.TOGGLE_TODO_VIEW: {
+      const stateCopy = Object.assign({}, state);
+      stateCopy.todo[action.payload.id].isVisible = !stateCopy.todo[
+        action.payload.id
+        ].isVisible;
       return stateCopy;
     }
     default:
